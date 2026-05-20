@@ -133,16 +133,17 @@ public class DependencyCopier {
         List<File> copiedFiles = new ArrayList<>();
         Set<String> processedClasses = new HashSet<>(); // 防止循环依赖导致死循环
         
-        for (String className : projectDependencies) {
-            copyClassAndNested(projectRoot, className, outputPath, rootPath, copiedFiles, processedClasses);
-        }
-        
-        // 6. 同时复制目标文件本身
+        // 先复制目标文件本身
         Path relativePath = rootPath.relativize(sourceFile);
         Path destFile = outputPath.resolve(relativePath);
         Files.createDirectories(destFile.getParent());
         Files.copy(sourceFile, destFile, StandardCopyOption.REPLACE_EXISTING);
         copiedFiles.add(destFile.toFile());
+        
+        // 再复制依赖文件
+        for (String className : projectDependencies) {
+            copyClassAndNested(projectRoot, className, outputPath, rootPath, copiedFiles, processedClasses);
+        }
         
         System.out.println("复制完成，共复制 " + copiedFiles.size() + " 个文件到 " + outputPath);
         return copiedFiles;
