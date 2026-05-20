@@ -375,6 +375,31 @@ public class DependencyCopierV1 {
         Files.createDirectories(targetPath.getParent());
         Files.copy(sourceFile, targetPath, StandardCopyOption.REPLACE_EXISTING);
         System.out.println("已复制: " + relativePath);
+        
+        // 复制内部类/嵌套类文件（如 Foo$Bar.java）
+        copyNestedClasses(sourceFile, sourceRoot, outputDir);
+    }
+
+    /**
+     * 复制内部类/嵌套类（在同一目录下搜索包含 $ 的文件）
+     */
+    private static void copyNestedClasses(Path sourceFile, Path sourceRoot, Path outputDir) throws IOException {
+        Path parentDir = sourceFile.getParent();
+        String baseName = sourceFile.getFileName().toString().replace(".java", "");
+        
+        if (parentDir != null && Files.isDirectory(parentDir)) {
+            try (DirectoryStream<Path> stream = Files.newDirectoryStream(parentDir, baseName + "$*.java")) {
+                for (Path nested : stream) {
+                    Path relativePath = sourceRoot.relativize(nested);
+                    Path targetPath = outputDir.resolve(relativePath);
+                    if (!Files.exists(targetPath)) {
+                        Files.createDirectories(targetPath.getParent());
+                        Files.copy(nested, targetPath, StandardCopyOption.REPLACE_EXISTING);
+                        System.out.println("已复制内部类: " + relativePath);
+                    }
+                }
+            }
+        }
     }
 
     /**
