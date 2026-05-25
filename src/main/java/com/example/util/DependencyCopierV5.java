@@ -136,7 +136,7 @@ public class DependencyCopierV5 {
             List<Path> depFiles = findClassFiles(dep);
             for (Path depFile : depFiles) {
                 if (!processedFiles.contains(depFile.toString())) {
-                    String indent = "  ".repeat(depth);
+                    String indent = getIndent(depth);
                     System.out.println(indent + "-> 复制依赖文件: " + sourcePath.relativize(depFile));
                     processFile(depFile);
                 }
@@ -162,7 +162,7 @@ public class DependencyCopierV5 {
             
             for (Path targetFile : targetFiles) {
                 if (!processedMethods.contains(extractClassName(targetFile, sourcePath) + "." + call.methodName)) {
-                    String indent = "  ".repeat(depth + 1);
+                    String indent = getIndent(depth + 1);
                     System.out.println(indent + ">> 分析方法: " + call.className + "." + call.methodName);
                     analyzeAndCopyMethod(targetFile, call.methodName, depth + 1);
                 }
@@ -693,6 +693,17 @@ public class DependencyCopierV5 {
                 }
             }
         }
+    }
+    
+    /**
+     * Java 8兼容的缩进生成
+     */
+    private String getIndent(int depth) {
+        StringBuilder sb = new StringBuilder();
+        for (int i = 0; i < depth; i++) {
+            sb.append("  ");
+        }
+        return sb.toString();
     }
     
     public static void main(String[] args) {
